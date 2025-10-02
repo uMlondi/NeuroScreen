@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Comprehension Test - LD Detector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .card {
+        display: none;
+      }
+      .card.active {
+        display: block;
+      }
+      .progress-track {
+        height: 10px;
+      }
+      .progress-fill {
+        height: 10px;
+        transition: width 0.2s ease;
+      }
+    </style>
+  </head>
+  <body
+    class="font-sans bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white min-h-screen flex items-center justify-center"
+  >
+    <div class="max-w-3xl w-full p-6">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 space-y-6"
+      >
+        <!-- Title -->
+        <h1
+          class="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400"
+        >
+          📖 Reading Comprehension
+        </h1>
+
+        {% set active_difficulty = test_data.difficulty %}
+        <div class="flex flex-wrap justify-center gap-3 mt-4">
+          {% for level in difficulties %}
+          {% set is_active = (level == active_difficulty) %}
+          <a
+            href="{{ url_for('test_comprehension', difficulty=level) }}"
+            class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border {{ 'bg-blue-600 text-white border-blue-600 shadow-lg' if is_active else 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:text-blue-600' }}"
+          >
+            {{ level.title() }}
+          </a>
+          {% endfor %}
+        </div>
+
+        {% set ns = namespace(total=0) %}
+        {% for block in test_data.blocks.values() %}
+          {% set ns.total = ns.total + (block.questions | length) %}
+        {% endfor %}
+
+        <!-- Intro -->
+        <section
+          class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900"
+        >
+          <h2 class="font-semibold mb-2">What you'll do</h2>
+          <ul
+            class="list-disc pl-5 space-y-1 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <li>
+              You’ll answer <strong>{{ ns.total }}</strong> questions total.
+            </li>
+            <li>
+              There are <strong>3 passages</strong>. You’ll see each passage
+              first, then <strong>5 multiple-choice questions</strong> from that
+              passage.
+            </li>
+            <li>
+              Questions are <strong>randomised</strong> every attempt and answer
+              options are shuffled.
+            </li>
+            <li>
+              Content covered:
+              <ul class="list-disc pl-5 mt-1">
+                <li>
+                  <em>The Procrastination Puzzle</em> — emotion-driven delay,
+                  habit loops, practical starters
+                </li>
+                <li>
+                  <em>Perfectionism as Hidden Procrastination</em> — fear
+                  management, looping edits, reframing success
+                </li>
+                <li>
+                  <em>The Multitasking Myth</em> — task-switching costs, novelty
+                  rewards, focus strategies
+                </li>
+              </ul>
+            </li>
+            <li>
+              You’ll work <strong>one card at a time</strong> like flashcards.
+              You can go back and forth. Your score is the number correct.
+            </li>
+          </ul>
+          <p class="text-xs text-gray-600 dark:text-gray-400 mt-3">
+            Tip: Answer based on the passage, not personal opinion.
+          </p>
+        </section>
+
+        <!-- Progress -->
+        <div>
+          <div class="flex justify-between items-center text-sm mb-2">
+            <span id="progressLabel">Card 1 of …</span>
+            <span id="progressPct">0%</span>
+          </div>
+          <div
+            class="w-full bg-gray-200 dark:bg-gray-700 rounded-full progress-track"
+          >
+            <div
+              id="progressBar"
+              class="bg-blue-600 rounded-full progress-fill"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        {% if ns.total == 0 %}
+        <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-xl p-6 text-center">
+          <p class="text-yellow-700 dark:text-yellow-200 font-medium">
+            Questions for this difficulty are coming soon. Please check back later or choose another level above.
+          </p>
+        </div>
+        {% else %}
+        <form
+          method="POST"
+          action="{{ url_for('test_comprehension', difficulty=active_difficulty) }}"
+          id="quizForm"
+        >
+          <input
+            type="hidden"
+            name="name"
+            value="{{ session.get('user_name', '') }}"
+          />
+          <input
+            type="hidden"
+            name="email"
+            value="{{ user.email if user else '' }}"
+          />
+
+          {# Build a linear deck of cards: passage card -> questions #}
+          {% set qindex = 0 %}
+          {% for pkey, block in test_data.blocks.items() %}
+          <!-- PASSAGE CARD -->
+          <div
+            class="card {% if loop.first %}active{% endif %}"
+            data-kind="passage"
+            id="passage-{{ pkey }}"
+          >
+            <div
+              class="mb-3 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
+            >
+              Passage
+            </div>
+            <h2 class="text-lg font-semibold mb-3">
+              {{ block.title }}
+            </h2>
+            <div
+              class="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap leading-relaxed"
+            >
+              {{ block.text }}
+            </div>
+            <div
+              class="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-sm text-blue-800 dark:text-blue-200"
+            >
+              Ready? Click “Next” to answer 5 questions about this passage.
+            </div>
+          </div>
+
+          {# QUESTION CARDS FOR THIS PASSAGE (5) #}
+          {% for q in block.questions %}
+          {% set qindex = qindex + 1 %}
+          <input type="hidden" name="q_ids" value="{{ q.id }}" />
+          <div class="card" data-kind="question" id="q{{ q.id }}">
+            <p class="font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              {{ qindex }}. {{ q.text }}
+            </p>
+            <div class="space-y-3">
+              {% for key, text in q.options_shuffled %}
+              <label
+                class="block p-3 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="q{{ q.id }}"
+                  value="{{ key }}"
+                  class="mr-2"
+                />
+                {{ key }}) {{ text }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %} {% endfor %}
+
+          <!-- Nav buttons -->
+          <div class="flex justify-between items-center mt-6">
+            <button
+              type="button"
+              id="prevBtn"
+              class="hidden px-5 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
+            >
+              ⬅ Previous
+            </button>
+            <button
+              type="button"
+              id="nextBtn"
+              class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            >
+              Next ➡
+            </button>
+            <button
+              type="submit"
+              id="submitBtn"
+              class="hidden px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+            >
+              ✅ Submit
+            </button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <script>
+      const cards = Array.from(document.querySelectorAll(".card"));
+      let current = 0;
+
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const submitBtn = document.getElementById("submitBtn");
+      const progressBar = document.getElementById("progressBar");
+      const progressLabel = document.getElementById("progressLabel");
+      const progressPct = document.getElementById("progressPct");
+
+      function showCard(index) {
+        cards.forEach((c, i) => c.classList.toggle("active", i === index));
+        updateButtons(index);
+        updateProgress(index);
+      }
+
+      function updateButtons(index) {
+        prevBtn.style.display = index > 0 ? "inline-block" : "none";
+        const lastIndex = cards.length - 1;
+        const isLast = index === lastIndex;
+
+        // If on last card and it's a question, show submit
+        submitBtn.style.display =
+          isLast && cards[index].dataset.kind === "question"
+            ? "inline-block"
+            : "none";
+        nextBtn.style.display = isLast ? "none" : "inline-block";
+
+        if (cards[index].dataset.kind === "passage") {
+          nextBtn.textContent = "Start Questions ➡";
+        } else {
+          nextBtn.textContent = "Next ➡";
+        }
+      }
+
+      function updateProgress(index) {
+        const questionCards = cards.filter(
+          (c) => c.dataset.kind === "question"
+        );
+        const totalQ = questionCards.length;
+
+        if (cards[index].dataset.kind === "question") {
+          // We are on a question card
+          const qNum = questionCards.indexOf(cards[index]) + 1;
+          const pct = Math.round((qNum / totalQ) * 100);
+
+          progressLabel.textContent = `Question ${qNum} of ${totalQ}`;
+          progressPct.textContent = `${pct}%`;
+          progressBar.style.width = Math.max(5, pct) + "%";
+        } else {
+          // We are on a passage card
+          progressLabel.textContent = "Reading Passage";
+          progressPct.textContent = "--";
+          progressBar.style.width = "0%";
+        }
+      }
+
+      function currentAnswerSelected() {
+        const card = cards[current];
+        if (card.dataset.kind !== "question") return true;
+        const radios = card.querySelectorAll('input[type="radio"]');
+        for (const r of radios) if (r.checked) return true;
+        return false;
+      }
+
+      prevBtn.addEventListener("click", () => {
+        if (current > 0) {
+          current--;
+          showCard(current);
+        }
+      });
+
+      nextBtn.addEventListener("click", () => {
+        if (!currentAnswerSelected()) {
+          alert("Please choose an answer before continuing.");
+          return;
+        }
+        if (current < cards.length - 1) {
+          current++;
+          showCard(current);
+        }
+      });
+
+      showCard(current);
+    </script>
+  </body>
+</html>

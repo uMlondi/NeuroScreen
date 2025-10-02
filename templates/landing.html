@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Welcome - LD Detector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Added dyslexia-friendly font configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'dyslexia': ['OpenDyslexic', 'Comic Sans MS', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .dyslexia-font { font-family: 'OpenDyslexic', 'Comic Sans MS', 'Arial', sans-serif !important; }
+  </style>
+</head>
+<!-- Updated to modern gradient background with theme toggle -->
+<body class="bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-300">
+  <!-- Floating Navbar for Logged-in Users -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-lg">
+    <div class="max-w-6xl mx-auto px-6 py-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-6">
+          <h1 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+            LD Detector
+          </h1>
+          <div class="hidden md:flex space-x-4">
+            <a href="{{ url_for('index') }}" class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+              🏠 Home
+            </a>
+            <a href="{{ url_for('student_dashboard') }}" class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+              📊 Dashboard
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-sm text-gray-600 dark:text-gray-400">Welcome, {{ user.name }}!</span>
+          <a href="{{ url_for('logout') }}" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium">
+            🚪 Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Added theme toggle button -->
+  <button onclick="toggleTheme()" class="fixed top-20 right-4 p-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300 group">
+    <svg class="w-5 h-5 text-gray-700 dark:text-gray-300 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+    </svg>
+  </button>
+
+  <!-- Modernized welcome card with better styling -->
+  <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 max-w-2xl w-full text-center transform hover:scale-[1.02] transition-all duration-300">
+    <!-- Added welcome icon -->
+    <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+      <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    </div>
+
+    <h1 class="text-4xl font-bold mb-6 text-gray-900 dark:text-white dyslexia-font">
+      Welcome, {{ user.name }}! 🎉
+    </h1>
+    
+    <!-- Enhanced description with better typography -->
+    <div class="mb-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+      <p class="text-lg text-gray-700 dark:text-gray-300 leading-relaxed dyslexia-font">
+        <svg class="w-6 h-6 inline mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Please complete the <strong>"Get to Know You"</strong> assessment to unlock access to our comprehensive learning difficulty detection tests.
+      </p>
+    </div>
+
+    <!-- Enhanced CTA button with gradient and better styling -->
+    <a 
+      href="{{ url_for('get_to_know_you') }}" 
+      class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.05] focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-300 dyslexia-font text-lg"
+    >
+      <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+      </svg>
+      Start "Get to Know You" Assessment
+    </a>
+
+    <!-- Enhanced logout section -->
+    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <a 
+        href="{{ url_for('logout') }}" 
+        class="inline-flex items-center text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium hover:underline transition-colors duration-300 dyslexia-font"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        Sign Out
+      </a>
+    </div>
+  </div>
+
+  <!-- Added theme toggle functionality -->
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      
+      html.setAttribute('data-theme', newTheme);
+      html.classList.toggle('dark');
+      
+      localStorage.setItem('theme', newTheme);
+    }
+
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+</body>
+</html>

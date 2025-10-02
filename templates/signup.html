@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign Up - LD Detector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<!-- Enhanced body with gradient background -->
+<body class="font-sans bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white transition-all duration-300 min-h-screen flex items-center justify-center p-6">
+  <!-- Modernized signup card -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100 dark:border-gray-700">
+    <!-- Enhanced header -->
+    <div class="p-8 pb-6">
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto">
+          <span class="text-3xl">✨</span>
+        </div>
+        <h2 class="text-3xl font-bold">Create Account</h2>
+        <p class="text-gray-600 dark:text-gray-300 leading-relaxed">Join us to start your learning assessment journey</p>
+      </div>
+    </div>
+
+    <div class="px-8 pb-8">
+      <!-- Enhanced flash messages -->
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="mb-6 space-y-2">
+            {% for message in messages %}
+              <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-xl text-sm font-medium">
+                ⚠️ {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- Enhanced form with better accessibility -->
+      <form method="post" class="space-y-6">
+        <div class="space-y-2">
+          <label for="name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            required 
+            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+            placeholder="Enter your full name"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+            placeholder="Enter your email"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="age" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Age</label>
+          <input
+            type="number"
+            id="age"
+            name="age"
+            min="1"
+            max="120"
+            required
+            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+            placeholder="Enter your age"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="gender" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Gender</label>
+          <select 
+            id="gender" 
+            name="gender" 
+            required 
+            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+          >
+            <option value="" disabled selected>Select your gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label for="course" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Course</label>
+          <input 
+            type="text" 
+            id="course" 
+            name="course" 
+            required 
+            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+            placeholder="Enter your course"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="year" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Year</label>
+          <select 
+            id="year" 
+            name="year" 
+            required 
+            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+          >
+            <option value="" disabled selected>Select your year</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5+">5+</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            required 
+            class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300"
+            placeholder="Create a secure password"
+          >
+        </div>
+
+        <!-- Enhanced submit button -->
+        <button
+          type="submit"
+          id="submitBtn"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-500/20 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span id="btnText">🎉 Create Account</span>
+          <span id="loadingSpinner" class="hidden ml-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+        </button>
+      </form>
+
+      <!-- Enhanced footer links -->
+      <div class="mt-8 text-center">
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Already have an account? 
+            <a href="{{ url_for('login') }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors duration-300">
+              Sign in here
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Theme toggle script -->
+<script>
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.classList.add('dark');
+  document.documentElement.dataset.theme = 'dark';
+}
+
+// Form loading state management
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  const submitBtn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+
+  form.addEventListener('submit', function(e) {
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.textContent = 'Creating Account...';
+    loadingSpinner.classList.remove('hidden');
+
+    // Add visual feedback
+    submitBtn.classList.add('bg-green-500');
+    submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+  });
+});
+</script>
+</body>
+</html>

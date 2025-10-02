@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flash Cards Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Added dyslexia-friendly font configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'dyslexia': ['OpenDyslexic', 'Comic Sans MS', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<!-- Added modern gradient background and dyslexia-friendly font -->
+<body class="font-dyslexia bg-gradient-to-br from-green-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-green-900 dark:to-indigo-900 min-h-screen text-gray-900 dark:text-white transition-all duration-300">
+  <div class="max-w-4xl mx-auto p-6">
+    <!-- Enhanced header with better spacing and modern styling -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">🃏 Flash Cards Test</h1>
+        <p class="text-gray-600 dark:text-gray-300">Test your memory with interactive flash cards</p>
+      </div>
+      <button onclick="toggleTheme()"
+              class="px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+              aria-label="Toggle theme">
+        <span class="text-lg">🌗</span>
+      </button>
+    </div>
+
+    <!-- Modernized form with gradient background and rounded corners -->
+    <form method="POST" class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+      <div id="preview" class="mb-6">
+        <!-- Enhanced countdown styling -->
+        <div class="text-center mb-6">
+          <p class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Memorize these words carefully
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            They will disappear in <span id="count" class="font-bold text-green-600 dark:text-green-400 text-xl">5</span> seconds
+          </p>
+        </div>
+
+        <!-- Flash cards grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="flash-card bg-gradient-to-br from-blue-400 to-blue-600 text-white p-8 rounded-2xl shadow-lg text-center">
+            <div class="text-4xl mb-4">🐱</div>
+            <div class="text-2xl font-bold">CAT</div>
+          </div>
+          <div class="flash-card bg-gradient-to-br from-red-400 to-red-600 text-white p-8 rounded-2xl shadow-lg text-center">
+            <div class="text-4xl mb-4">🍎</div>
+            <div class="text-2xl font-bold">APPLE</div>
+          </div>
+          <div class="flash-card bg-gradient-to-br from-yellow-400 to-yellow-600 text-white p-8 rounded-2xl shadow-lg text-center">
+            <div class="text-4xl mb-4">📚</div>
+            <div class="text-2xl font-bold">BOOK</div>
+          </div>
+          <div class="flash-card bg-gradient-to-br from-purple-400 to-purple-600 text-white p-8 rounded-2xl shadow-lg text-center">
+            <div class="text-4xl mb-4">🏠</div>
+            <div class="text-2xl font-bold">HOUSE</div>
+          </div>
+          <div class="flash-card bg-gradient-to-br from-orange-400 to-orange-600 text-white p-8 rounded-2xl shadow-lg text-center">
+            <div class="text-4xl mb-4">☀️</div>
+            <div class="text-2xl font-bold">SUN</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="recall" style="display:none;">
+        <!-- Enhanced recall section with better typography -->
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Recall Phase</h2>
+          <p class="text-gray-600 dark:text-gray-400">Type the words you remember seeing:</p>
+        </div>
+
+        <!-- Input fields for recall -->
+        <div class="space-y-4 mb-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="space-y-2">
+              <label for="q1" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Word 1:</label>
+              <input type="text" id="q1" name="q1" placeholder="Type the word..."
+                     class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-600">
+            </div>
+            <div class="space-y-2">
+              <label for="q2" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Word 2:</label>
+              <input type="text" id="q2" name="q2" placeholder="Type the word..."
+                     class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-600">
+            </div>
+            <div class="space-y-2">
+              <label for="q3" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Word 3:</label>
+              <input type="text" id="q3" name="q3" placeholder="Type the word..."
+                     class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-600">
+            </div>
+            <div class="space-y-2">
+              <label for="q4" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Word 4:</label>
+              <input type="text" id="q4" name="q4" placeholder="Type the word..."
+                     class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-600">
+            </div>
+            <div class="space-y-2">
+              <label for="q5" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Word 5:</label>
+              <input type="text" id="q5" name="q5" placeholder="Type the word..."
+                     class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-600">
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced submit button with modern styling -->
+        <div class="text-center">
+          <button type="submit"
+                  class="px-8 py-4 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+            Submit Flash Cards Test
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+<script>
+let count = 5;
+const counterEl = document.getElementById('count');
+const interval = setInterval(() => {
+  count -= 1;
+  counterEl.textContent = count;
+  if (count <= 0) {
+    clearInterval(interval);
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('recall').style.display = 'block';
+  }
+}, 1000);
+
+function toggleTheme() {
+  document.documentElement.classList.toggle('dark');
+  document.documentElement.dataset.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin Dashboard - LD Detector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<!-- Enhanced body with gradient background -->
+<body class="font-sans bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white transition-all duration-300 min-h-screen">
+  <div class="max-w-7xl mx-auto p-6 space-y-8">
+    <!-- Modernized header with better styling -->
+    <header class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center">
+            <span class="text-2xl">📊</span>
+          </div>
+          <div>
+            <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+            <p class="text-gray-600 dark:text-gray-300">Manage assessment results and user data</p>
+          </div>
+        </div>
+        <button 
+          onclick="toggleTheme()" 
+          class="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-all duration-300 focus:ring-4 focus:ring-blue-500/20" 
+          aria-label="Toggle theme"
+        >
+          <span class="text-xl">🌗</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Enhanced filter section with better layout -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+        <span class="text-blue-500">🔍</span>
+        Filter Results
+      </h2>
+      <form method="GET" action="/admin" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="space-y-2">
+          <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address</label>
+          <input 
+            name="email" 
+            id="email"
+            value="{{ email }}" 
+            placeholder="Filter by email" 
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
+          >
+        </div>
+        
+        <div class="space-y-2">
+          <label for="test_type" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Test Type</label>
+          <select 
+            name="test_type" 
+            id="test_type"
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
+          >
+            <option value="">All Test Types</option>
+            <option value="Dyslexia" {% if test_type=='Dyslexia' %}selected{% endif %}>🔤 Dyslexia</option>
+            <option value="Dyscalculia" {% if test_type=='Dyscalculia' %}selected{% endif %}>➗ Dyscalculia</option>
+            <option value="Working Memory" {% if test_type=='Working Memory' %}selected{% endif %}>🖼️ Working Memory</option>
+          </select>
+        </div>
+        
+        <div class="flex items-end">
+          <button 
+            type="submit" 
+            class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+          >
+            🔍 Apply Filters
+          </button>
+        </div>
+        
+        <div class="flex items-end">
+          <a 
+            href="/admin/export?email={{ email }}&test_type={{ test_type }}" 
+            class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-500/20 text-center"
+          >
+            📥 Export CSV
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modernized results table with better responsive design -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-xl font-semibold flex items-center gap-2">
+          <span class="text-purple-500">📋</span>
+          Assessment Results
+        </h2>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Name</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Email</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Test Type</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Score</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Flag</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Message</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            {% for r in results %}
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
+              <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ r.name }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ r.email }}</td>
+              <td class="px-6 py-4 text-sm">
+                <!-- Added icons for test types -->
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
+                  {% if r.test_type == 'Dyslexia' %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300{% endif %}
+                  {% if r.test_type == 'Dyscalculia' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300{% endif %}
+                  {% if r.test_type == 'Working Memory' %}bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300{% endif %}
+                ">
+                  {% if r.test_type == 'Dyslexia' %}🔤{% endif %}
+                  {% if r.test_type == 'Dyscalculia' %}➗{% endif %}
+                  {% if r.test_type == 'Working Memory' %}🖼️{% endif %}
+                  {{ r.test_type }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-sm">
+                <span class="font-semibold text-gray-900 dark:text-white">{{ r.score }}/5</span>
+              </td>
+              <td class="px-6 py-4 text-sm">
+                <!-- Enhanced flag display with icons and colors -->
+                {% if r.flag %}
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                    ⚠️ Yes
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                    ✅ No
+                  </span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate">{{ r.message }}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ r.timestamp }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Added empty state message -->
+      {% if not results %}
+      <div class="p-12 text-center">
+        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <span class="text-2xl text-gray-400">📊</span>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Results Found</h3>
+        <p class="text-gray-600 dark:text-gray-300">Try adjusting your filters or check back later for new assessment results.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+<!-- Enhanced theme toggle script -->
+<script>
+function toggleTheme() {
+  document.documentElement.classList.toggle('dark');
+  document.documentElement.dataset.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  localStorage.setItem('theme', document.documentElement.dataset.theme);
+}
+
+// Load saved theme
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.classList.add('dark');
+  document.documentElement.dataset.theme = 'dark';
+}
+</script>
+</body>
+</html>
