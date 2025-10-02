@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Test - LD Detector{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="font-sans bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white transition-all duration-300 min-h-screen">
+  <!-- Floating Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-lg">
+    <div class="max-w-6xl mx-auto px-6 py-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-6">
+          <h1 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+            LD Detector
+          </h1>
+          <div class="hidden md:flex space-x-4">
+            <a href="{{ url_for('index') }}" class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+              🏠 Home
+            </a>
+            <a href="{{ url_for('student_dashboard') }}" class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+              📊 Dashboard
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-sm text-gray-600 dark:text-gray-400">Welcome, {{ session.get('user_name', 'User') }}!</span>
+          <a href="{{ url_for('logout') }}" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium">
+            🚪 Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Progress Bar -->
+  <div class="fixed top-20 left-0 right-0 z-40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+    <div class="max-w-4xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-semibold">{% block test_name %}Test{% endblock %}</h2>
+        <span class="text-sm text-gray-600 dark:text-gray-300">{% block progress_text %}Question {% block current_question %}1{% endblock %} of {% block total_questions %}5{% endblock %}{% endblock %}</span>
+      </div>
+      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out" style="width: {% block progress_percent %}20{% endblock %}%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="pt-40 pb-8">
+    <div class="max-w-4xl mx-auto p-6">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  <!-- Theme toggle script -->
+  <script>
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      document.documentElement.dataset.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', document.documentElement.dataset.theme);
+    }
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.dataset.theme = 'dark';
+    }
+  </script>
+</body>
+</html>

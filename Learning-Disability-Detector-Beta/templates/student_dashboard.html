@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Student Dashboard - LD Detector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="font-sans bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white transition-all duration-300 min-h-screen">
+  <!-- Floating Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-lg">
+    <div class="max-w-6xl mx-auto px-6 py-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-6">
+          <h1 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+            LD Detector
+          </h1>
+          <div class="hidden md:flex space-x-4">
+            <a href="{{ url_for('index') }}" class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+              🏠 Home
+            </a>
+            <a href="{{ url_for('student_dashboard') }}" class="px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+              📊 Dashboard
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-sm text-gray-600 dark:text-gray-400">Welcome, {{ user.name }}!</span>
+          <a href="{{ url_for('logout') }}" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium">
+            🚪 Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="pt-24 pb-8">
+    <div class="max-w-6xl mx-auto p-6 space-y-8">
+      <!-- Welcome Section -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+        <div class="text-center space-y-4">
+          <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto">
+            <span class="text-3xl text-white">{{ user.name[0].upper() }}</span>
+          </div>
+          <h1 class="text-3xl font-bold">Welcome back, {{ user.name }}!</h1>
+          <p class="text-gray-600 dark:text-gray-300">Here's your learning progress and information</p>
+        </div>
+      </div>
+
+      <!-- Student Information Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
+          <div class="text-center space-y-3">
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto">
+              <span class="text-2xl">👤</span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Personal Info</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Name: {{ user.name }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Age: {{ user.age }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Gender: {{ user.gender }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
+          <div class="text-center space-y-3">
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mx-auto">
+              <span class="text-2xl">🎓</span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Academic Info</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Course: {{ user.course }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Year: {{ user.year }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Email: {{ user.email }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
+          <div class="text-center space-y-3">
+            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mx-auto">
+              <span class="text-2xl">📋</span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Assessment Status</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300">
+                {% if user.completed_get_to_know_you %}
+                  ✅ Completed
+                {% else %}
+                  ⏳ Pending
+                {% endif %}
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Get to Know You</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
+          <div class="text-center space-y-3">
+            <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center mx-auto">
+              <span class="text-2xl">📊</span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Test Results</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300">View your assessment</p>
+              <p class="text-sm text-gray-600 dark:text-gray-300">results and progress</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Get to Know You Responses -->
+      {% if user.completed_get_to_know_you %}
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold mb-6 text-center">Your Assessment Responses</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {% if user.g2k_learning_style %}
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+            <h3 class="font-semibold text-lg mb-3 flex items-center">
+              <span class="text-2xl mr-3">🧠</span>
+              Learning Style
+            </h3>
+            <p class="text-gray-700 dark:text-gray-300">{{ user.g2k_learning_style }}</p>
+          </div>
+          {% endif %}
+
+          {% if user.g2k_diagnosed_difficulties %}
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+            <h3 class="font-semibold text-lg mb-3 flex items-center">
+              <span class="text-2xl mr-3">📋</span>
+              Diagnosed Difficulties
+            </h3>
+            <p class="text-gray-700 dark:text-gray-300">{{ user.g2k_diagnosed_difficulties }}</p>
+          </div>
+          {% endif %}
+
+          {% if user.g2k_age_group %}
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 md:col-span-2">
+            <h3 class="font-semibold text-lg mb-3 flex items-center">
+              <span class="text-2xl mr-3">👶</span>
+              Age Group
+            </h3>
+            <p class="text-gray-700 dark:text-gray-300">{{ user.g2k_age_group }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quick Actions -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold mb-6 text-center">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {% if not user.completed_get_to_know_you %}
+          <a href="{{ url_for('get_to_know_you') }}" class="group bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-2xl p-6 text-center transition-all duration-300 transform hover:scale-105">
+            <div class="space-y-3">
+              <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <span class="text-3xl">🚀</span>
+              </div>
+              <h3 class="font-bold text-lg">Start Assessment</h3>
+              <p class="text-sm opacity-90">Complete your initial evaluation</p>
+            </div>
+          </a>
+          {% else %}
+          <a href="{{ url_for('test_comprehension') }}" class="group bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-2xl p-6 text-center transition-all duration-300 transform hover:scale-105">
+            <div class="space-y-3">
+              <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <span class="text-3xl">📚</span>
+              </div>
+              <h3 class="font-bold text-lg">Comprehension</h3>
+              <p class="text-sm opacity-90">Comprehensive learning difficulty screening</p>
+            </div>
+          </a>
+
+          <a href="{{ url_for('test_phonetics') }}" class="group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-2xl p-6 text-center transition-all duration-300 transform hover:scale-105">
+            <div class="space-y-3">
+              <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <span class="text-3xl">🗣️</span>
+              </div>
+              <h3 class="font-bold text-lg">Phonetics</h3>
+              <p class="text-sm opacity-90">Phonetic awareness and language processing</p>
+            </div>
+          </a>
+
+          <a href="{{ url_for('test_memory') }}" class="group bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl p-6 text-center transition-all duration-300 transform hover:scale-105">
+            <div class="space-y-3">
+              <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <span class="text-3xl">🖼️</span>
+              </div>
+              <h3 class="font-bold text-lg">Memory Test</h3>
+              <p class="text-sm opacity-90">Visual memory assessment</p>
+            </div>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Recent Activity (Placeholder) -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold mb-6 text-center">Recent Activity</h2>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+            <div class="flex items-center space-x-4">
+              <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <span class="text-lg">📝</span>
+              </div>
+              <div>
+                <p class="font-medium">Account Created</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Welcome to LD Detector!</p>
+              </div>
+            </div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Just now</span>
+          </div>
+          {% if user.completed_get_to_know_you %}
+          <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+            <div class="flex items-center space-x-4">
+              <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                <span class="text-lg">✅</span>
+              </div>
+              <div>
+                <p class="font-medium">Assessment Completed</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Get to Know You assessment finished</p>
+              </div>
+            </div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">Recently</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme toggle script -->
+  <script>
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      document.documentElement.dataset.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', document.documentElement.dataset.theme);
+    }
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.dataset.theme = 'dark';
+    }
+  </script>
+</body>
+</html>

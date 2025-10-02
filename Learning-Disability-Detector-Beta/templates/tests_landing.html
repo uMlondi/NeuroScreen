@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests Landing - LD Detector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Added dyslexia-friendly fonts and modern font configuration -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=OpenDyslexic:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'dyslexic': ['OpenDyslexic', 'Arial', 'sans-serif'],
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<!-- Added modern gradient background and improved accessibility -->
+<body class="font-dyslexic bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white transition-all duration-300 min-h-screen">
+    <!-- Enhanced container with modern spacing and layout -->
+    <div class="container mx-auto px-6 py-12 max-w-6xl">
+        <!-- Modernized header section with better typography -->
+        <div class="text-center mb-12">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span class="text-4xl">🧠</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Welcome, {{ user.name }}!
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto">
+                You have completed the Get to Know You assessment. Now, choose from the specialized tests below to continue your learning journey.
+            </p>
+        </div>
+
+        <!-- Enhanced test cards with modern design and better accessibility -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <a href="{{ url_for('test_dyslexia') }}" 
+               class="group bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl border border-gray-100 dark:border-gray-700 p-8 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+               role="button"
+               aria-label="Take Dyslexia Test">
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors duration-300">
+                    <span class="text-3xl">📖</span>
+                </div>
+                <h3 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">Dyslexia Test</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Assess reading and language processing abilities with specialized exercises.
+                </p>
+                <div class="mt-6 flex flex-wrap gap-2">
+                    {% for level in ['easy', 'medium', 'hard'] %}
+                    <a href="{{ url_for('test_dyslexia', difficulty=level) }}" class="px-3 py-1 text-xs font-semibold rounded-full border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30">
+                        {{ level.title() }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </a>
+
+            <a href="{{ url_for('test_dyscalculia') }}" 
+               class="group bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl border border-gray-100 dark:border-gray-700 p-8 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500/20"
+               role="button"
+               aria-label="Take Dyscalculia Test">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors duration-300">
+                    <span class="text-3xl">🔢</span>
+                </div>
+                <h3 class="text-2xl font-bold text-green-600 dark:text-green-400 mb-3">Dyscalculia Test</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Evaluate mathematical reasoning and number processing skills.
+                </p>
+                <div class="mt-6 flex flex-wrap gap-2">
+                    {% for level in ['easy', 'medium', 'hard'] %}
+                    <a href="{{ url_for('test_dyscalculia', difficulty=level) }}" class="px-3 py-1 text-xs font-semibold rounded-full border border-green-200 dark:border-green-700 text-green-600 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30">
+                        {{ level.title() }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </a>
+
+            <a href="{{ url_for('test_memory') }}" 
+               class="group bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl border border-gray-100 dark:border-gray-700 p-8 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500/20"
+               role="button"
+               aria-label="Take Memory Test">
+                <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50 transition-colors duration-300">
+                    <span class="text-3xl">🧩</span>
+                </div>
+                <h3 class="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-3">Memory Test</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Test working memory and cognitive processing capabilities.
+                </p>
+                <div class="mt-6 flex flex-wrap gap-2">
+                    {% for level in ['easy', 'medium', 'hard'] %}
+                    <a href="{{ url_for('test_memory', difficulty=level) }}" class="px-3 py-1 text-xs font-semibold rounded-full border border-purple-200 dark:border-purple-700 text-purple-600 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30">
+                        {{ level.title() }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </a>
+        </div>
+
+        <!-- Enhanced action buttons with better spacing and accessibility -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {% if user.role in ['admin', 'superuser'] %}
+            <a href="/admin" 
+               class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-red-500/20 text-lg shadow-lg hover:shadow-xl">
+                🛠️ Admin Dashboard
+            </a>
+            {% endif %}
+            
+            <a href="/logout" 
+               class="bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gray-500/20 text-lg shadow-lg hover:shadow-xl">
+                👋 Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Added theme toggle functionality -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.dataset.theme = 'dark';
+        }
+    </script>
+</body>
+</html>

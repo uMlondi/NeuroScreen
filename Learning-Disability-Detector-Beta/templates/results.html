@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test Results</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Added dyslexia-friendly font configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'dyslexia': ['OpenDyslexic', 'Comic Sans MS', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<!-- Added modern gradient background and dyslexia-friendly font -->
+<body class="font-dyslexia bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 min-h-screen text-gray-900 dark:text-white transition-all duration-300">
+  <div class="max-w-4xl mx-auto p-6">
+    <!-- Enhanced header with better typography and spacing -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        {% if result %}
+          <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">📊 {{ result.type }} Results</h1>
+          <p class="text-gray-600 dark:text-gray-300">Your assessment results</p>
+        {% else %}
+          <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">📊 Assessment Summary</h1>
+          <p class="text-gray-600 dark:text-gray-300">Overview of your assessments</p>
+        {% endif %}
+      </div>
+      <button onclick="toggleTheme()" 
+              class="px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              aria-label="Toggle theme">
+        <span class="text-lg">🌗</span>
+      </button>
+    </div>
+
+    {% if result %}
+      <!-- Single test result -->
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 mb-8">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full mb-4">
+            <span class="text-3xl text-white font-bold">{{ result.score }}</span>
+          </div>
+          {% set denom = result.total if result.total is defined else 5 %}
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Score: {{ result.score }}/{{ denom }}</h2>
+          <p class="text-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 px-6 py-3 rounded-2xl">{{ result.message }}</p>
+          {% if result.level_breakdown is defined %}
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div class="bg-white/70 dark:bg-gray-700/50 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
+              <div class="font-semibold">Level 1</div>
+              <div class="text-gray-700 dark:text-gray-300">{{ result.level_breakdown.level1.correct }}/{{ result.level_breakdown.level1.total }}</div>
+            </div>
+            <div class="bg-white/70 dark:bg-gray-700/50 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
+              <div class="font-semibold">Level 2</div>
+              <div class="text-gray-700 dark:text-gray-300">{{ result.level_breakdown.level2.correct }}/{{ result.level_breakdown.level2.total }}</div>
+            </div>
+            <div class="bg-white/70 dark:bg-gray-700/50 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
+              <div class="font-semibold">Level 3</div>
+              <div class="text-gray-700 dark:text-gray-300">{{ result.level_breakdown.level3.correct }}/{{ result.level_breakdown.level3.total }}</div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <!-- Summary view -->
+      {% if progress_pct is defined %}
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 mb-8">
+        <div class="flex justify-between items-center text-sm mb-2">
+          <span>Progress: {{ completed_count or 0 }}/{{ total_tests or 3 }} tests completed</span>
+          <span>{{ progress_pct or 0 }}%</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+          <div id="summaryProgressFill" class="bg-emerald-500 h-3 rounded-full" data-pct="{{ progress_pct or 0 }}"></div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="space-y-4">
+        {% if summary_results and summary_results|length > 0 %}
+          {% for r in summary_results %}
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white">{{ r.test_type }}</h3>
+                <p class="text-gray-600 dark:text-gray-300">{{ r.message }}</p>
+              </div>
+              <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full mb-1">
+                  <span class="text-2xl text-white font-bold">{{ r.score }}</span>
+                </div>
+                {% set denom = r.total|default(5) %}
+                <div class="text-sm text-gray-600 dark:text-gray-300">/ {{ denom }}</div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="p-12 text-center bg-white/80 dark:bg-gray-800/80 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <span class="text-2xl text-gray-400">📊</span>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No results yet</h3>
+            <p class="text-gray-600 dark:text-gray-300">Complete your assessments to see a summary here.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if completed_count is defined and total_tests is defined and completed_count >= total_tests %}
+      <div class="text-center mt-8">
+        <a href="{{ url_for('programs') }}" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+          <span class="mr-2">🎯</span>
+          View Personalized Programs
+        </a>
+      </div>
+      {% endif %}
+    {% endif %}
+
+    <!-- Enhanced chart container with modern styling -->
+    <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 mb-8">
+      <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Performance Breakdown</h3>
+      <div class="max-w-md mx-auto">
+        <canvas id="c" class="drop-shadow-lg" {% if result %}data-score="{{ result.score }}"{% if result.total is defined %} data-denom="{{ result.total }}"{% endif %}{% endif %}></canvas>
+      </div>
+    </div>
+
+    <!-- Enhanced navigation with modern button styling -->
+    <div class="text-center">
+      <a href="/" 
+         class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+        <span class="mr-2">🏠</span>
+        Return to Home
+      </a>
+    </div>
+  </div>
+
+<script>
+function toggleTheme() {
+  document.documentElement.classList.toggle('dark');
+  document.documentElement.dataset.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+// Summary progress width
+(function(){
+  var el = document.getElementById('summaryProgressFill');
+  if (el) {
+    var pct = parseInt(el.getAttribute('data-pct') || '0', 10);
+    if (isNaN(pct) || pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    el.style.width = pct + '%';
+  }
+})();
+
+// Single result chart if score data available
+(function(){
+  var canvas = document.getElementById('c');
+  if (!canvas) return;
+  var scoreAttr = canvas.getAttribute('data-score');
+  if (!scoreAttr) return;
+  var score = parseInt(scoreAttr, 10);
+  var denomAttr = canvas.getAttribute('data-denom');
+  var denom = parseInt(denomAttr || '5', 10);
+  if (isNaN(score)) return;
+  var ctx = canvas.getContext('2d');
+  var data = {
+    labels: ['Correct Answers', 'Incorrect Answers'],
+    datasets: [{
+      data: [score, (isNaN(denom) ? 5 : denom) - score],
+      backgroundColor: [
+        'rgba(16, 185, 129, 0.8)',
+        'rgba(239, 68, 68, 0.8)'
+      ],
+      borderColor: [
+        'rgba(16, 185, 129, 1)',
+        'rgba(239, 68, 68, 1)'
+      ],
+      borderWidth: 2,
+      hoverBackgroundColor: [
+        'rgba(16, 185, 129, 0.9)',
+        'rgba(239, 68, 68, 0.9)'
+      ]
+    }]
+  };
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: { animateRotate: true, duration: 1500, easing: 'easeOutQuart' },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { padding: 20, font: { size: 14, weight: '500' } }
+        }
+      },
+      cutout: '60%'
+    }
+  });
+})();
+</script>
+</body>
+</html>

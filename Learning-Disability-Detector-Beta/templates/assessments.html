@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assessments - LD Detector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="font-sans bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white transition-all duration-300 min-h-screen">
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-lg">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+        LD Detector - Assessments
+      </h1>
+      <a href="{{ url_for('index') }}" class="px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+        🏠 Home
+      </a>
+    </div>
+  </nav>
+
+  <main class="pt-24 max-w-6xl mx-auto p-6">
+    <h2 class="text-3xl font-bold mb-8 text-center">Choose an Assessment</h2>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+      <div class="px-4 py-3 rounded-xl bg-yellow-100 text-yellow-900 border border-yellow-300">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Progress Bar -->
+    <div class="mb-10">
+      <div class="flex justify-between items-center text-sm mb-2">
+        <span>Progress: {{ completed_count or 0 }}/{{ total_tests or 3 }} tests completed</span>
+        <span>{{ progress_pct or 0 }}%</span>
+      </div>
+      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+        <div id="progressFill" class="bg-green-500 h-3 rounded-full transition-all" data-pct="{{ progress_pct or 0 }}"></div>
+      </div>
+      <div class="mt-4 text-center">
+        {% if (completed_count or 0) >= (total_tests or 3) %}
+        <a href="{{ url_for('student_results') }}" class="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all">
+          <span class="mr-2">✅</span> View Results
+        </a>
+        {% else %}
+        <button disabled title="Please complete all tests to view results" class="inline-flex items-center px-6 py-3 bg-gray-300 text-gray-600 rounded-xl font-semibold cursor-not-allowed">
+          <span class="mr-2">🔒</span> Results Locked
+        </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Comprehension Card -->
+      <a href="{{ url_for('test_comprehension') }}" class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+        <div class="text-center">
+          <div class="text-6xl mb-4">📖</div>
+          <h3 class="text-xl font-semibold mb-2">Comprehension</h3>
+          <p class="text-gray-600 dark:text-gray-300">Reading comprehension assessment</p>
+          {% if completed_tests and 'comprehension' in completed_tests %}
+          <div class="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">✅ Completed</div>
+          {% endif %}
+        </div>
+      </a>
+
+      <!-- Memory Card -->
+      <a href="{{ url_for('test_memory') }}" class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+        <div class="text-center">
+          <div class="text-6xl mb-4">🧠</div>
+          <h3 class="text-xl font-semibold mb-2">Memory</h3>
+          <p class="text-gray-600 dark:text-gray-300">Visual memory assessment</p>
+          {% if completed_tests and 'memory' in completed_tests %}
+          <div class="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">✅ Completed</div>
+          {% endif %}
+        </div>
+      </a>
+
+      <!-- Phonetics Card -->
+      <a href="{{ url_for('test_phonetics') }}" class="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+        <div class="text-center">
+          <div class="text-6xl mb-4">🔤</div>
+          <h3 class="text-xl font-semibold mb-2">Phonetics</h3>
+          <p class="text-gray-600 dark:text-gray-300">Phonetic spelling (sound → spelling)</p>
+          {% if completed_tests and 'phonetics' in completed_tests %}
+          <div class="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">✅ Completed</div>
+          {% endif %}
+        </div>
+      </a>
+
+    </div>
+  </main>
+  <script>
+    (function(){
+      var el = document.getElementById('progressFill');
+      if (el) {
+        var pct = parseInt(el.getAttribute('data-pct') || '0', 10);
+        if (isNaN(pct) || pct < 0) pct = 0;
+        if (pct > 100) pct = 100;
+        el.style.width = pct + '%';
+      }
+    })();
+  </script>
+</body>
+</html>
