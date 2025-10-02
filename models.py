@@ -1,8 +1,10 @@
-from flask_sqlalchemy import SQLAlchemy 
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from datetime import datetime
 import csv
+from sqlalchemy.orm import validates
+from sqlalchemy.sql import expression
 
 db = SQLAlchemy()
 
@@ -11,7 +13,13 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.String(20), default='student')
+    role = db.Column(
+        db.Enum('admin', 'counselor', 'student', name='user_roles'),
+        nullable=False,
+        default='student',
+        server_default='student'
+    )
+    active = db.Column(db.Boolean, nullable=False, default=True, server_default=expression.true())
     completed_get_to_know_you = db.Column(db.Boolean, default=False)
 
     # New fields for student info
@@ -30,6 +38,111 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    programs_created = db.relationship('Program', backref='creator', lazy='dynamic')
+    reviews = db.relationship('Review', backref='student', lazy='dynamic', foreign_keys='Review.student_id')
+    counselor_assignments = db.relationship(
+        'CounselorStudent',
+        backref='counselor',
+        lazy='dynamic',
+        foreign_keys='CounselorStudent.counselor_id'
+    )
+    student_assignments = db.relationship(
+        'CounselorStudent',
+        backref='student',
+        lazy='dynamic',
+        foreign_keys='CounselorStudent.student_id'
+    )
+    reset_requests = db.relationship('PasswordResetRequest', backref='user', lazy='dynamic')
+
+
+class Program(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    reviews = db.relationship('Review', backref='program', lazy='dynamic')
+
+    @validates('created_by')
+    def validate_created_by(self, key, value):
+        user = User.query.get(value) if value is not None else None
+        if user is None:
+            raise ValueError('Program creator must be a valid user.')
+        if user.role != 'counselor':
+            raise ValueError('Only counselors can create programs.')
+        return value
+
+
+class PasswordResetRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    email = db.Column(db.String(120), nullable=False)
+    token = db.Column(db.String(255), nullable=False, unique=True)
+    status = db.Column(
+        db.Enum('pending', 'approved', 'denied', 'completed', name='password_reset_status'),
+        nullable=False,
+        default='pending',
+        server_default='pending'
+    )
+    requested_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    processed_at = db.Column(db.DateTime, nullable=True)
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
+    feedback = db.Column(db.Text, nullable=True)
+    rating = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    @validates('student_id')
+    def validate_student(self, key, value):
+        user = User.query.get(value) if value is not None else None
+        if user is None:
+            raise ValueError('Review must reference a valid student.')
+        if user.role != 'student':
+            raise ValueError('Only students can submit reviews.')
+        return value
+
+    @validates('rating')
+    def validate_rating(self, key, value):
+        if value is None:
+            raise ValueError('Rating is required.')
+        if not (1 <= int(value) <= 5):
+            raise ValueError('Rating must be between 1 and 5.')
+        return value
+
+
+class CounselorStudent(db.Model):
+    __tablename__ = 'counselor_student'
+    __table_args__ = (
+        db.UniqueConstraint('counselor_id', 'student_id', name='uq_counselor_student_pair'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    counselor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    assigned_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    @validates('counselor_id')
+    def validate_counselor(self, key, value):
+        user = User.query.get(value) if value is not None else None
+        if user is None:
+            raise ValueError('Counselor assignment must reference a valid counselor.')
+        if user.role != 'counselor':
+            raise ValueError('Counselor assignments require counselor role users.')
+        return value
+
+    @validates('student_id')
+    def validate_student(self, key, value):
+        user = User.query.get(value) if value is not None else None
+        if user is None:
+            raise ValueError('Counselor assignment must reference a valid student.')
+        if user.role != 'student':
+            raise ValueError('Counselor assignments require student role users.')
+        return value
     
 class Result(db.Model):
     id = db.Column(db.Integer, primary_key=True)

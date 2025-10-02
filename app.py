@@ -1,5 +1,6 @@
 # Standard library imports
 import os
+from datetime import datetime
 from io import BytesIO
 
 # Third-party imports
@@ -10,7 +11,23 @@ from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.exc import SQLAlchemyError
 
 # Local imports
-from models import db, User, Test, Remedial, save_result, get_filtered_results, export_results_to_csv, create_hardcoded_users
+from models import (
+    db,
+    User,
+    Test,
+    Remedial,
+    Program,
+    Review,
+    CounselorStudent,
+    PasswordResetRequest,
+    User_Test_Attempt,
+    User_Remedial_Progress,
+    Result,
+    save_result,
+    get_filtered_results,
+    export_results_to_csv,
+    create_hardcoded_users,
+)
 from ld_logic import (
     evaluate_dyslexia,
     evaluate_dyscalculia,
@@ -18,7 +35,8 @@ from ld_logic import (
     evaluate_phonetics,
     evaluate_phonetics_legacy_mcq,
 )
-from sqlalchemy import or_
+from sqlalchemy import func, or_
+from utils.roles import role_required
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -108,7 +126,7 @@ def _ensure_test_user():
         flash('Session expired. Please log in again.')
         return None, redirect(url_for('login'))
 
-    if not user.completed_get_to_know_you:
+    if user.role == 'student' and not user.completed_get_to_know_you:
         flash('Please complete the "Get to Know You" assessment first.')
         return user, redirect(url_for('landing'))
 
@@ -225,10 +243,41 @@ def migrate_database():
                     print("Adding g2k_age_group column to User table...")
                     db.session.execute(db.text('ALTER TABLE user ADD COLUMN g2k_age_group VARCHAR(20)'))
 
+                if 'role' not in columns:
+                    print("Adding role column to User table...")
+                    db.session.execute(db.text("ALTER TABLE user ADD COLUMN role VARCHAR(20) DEFAULT 'student'"))
+                    db.session.execute(db.text("UPDATE user SET role = 'student' WHERE role IS NULL"))
+
+                if 'active' not in columns:
+                    print("Adding active column to User table...")
+                    db.session.execute(db.text('ALTER TABLE user ADD COLUMN active BOOLEAN DEFAULT 1'))
+                    db.session.execute(db.text('UPDATE user SET active = 1 WHERE active IS NULL'))
+
                 db.session.commit()
                 print("Database migration completed successfully!")
             else:
                 print("User table does not exist yet. Migration will be handled by db.create_all().")
+
+            # Ensure newly introduced tables exist
+            existing_tables = set(inspector.get_table_names())
+            required_tables = {
+                Program.__tablename__,
+                Review.__tablename__,
+                CounselorStudent.__tablename__,
+                PasswordResetRequest.__tablename__
+            }
+            missing_tables = required_tables - existing_tables
+            if missing_tables:
+                print(f"Creating missing tables: {', '.join(sorted(missing_tables))}")
+                for table_name in missing_tables:
+                    if table_name == Program.__tablename__:
+                        Program.__table__.create(db.engine)
+                    elif table_name == Review.__tablename__:
+                        Review.__table__.create(db.engine)
+                    elif table_name == CounselorStudent.__tablename__:
+                        CounselorStudent.__table__.create(db.engine)
+                    elif table_name == PasswordResetRequest.__tablename__:
+                        PasswordResetRequest.__table__.create(db.engine)
     except Exception as e:
         print(f"Database migration error: {e}")
         db.session.rollback()
@@ -464,6 +513,14 @@ def login():
                 session['user_id'] = user.id
                 session['user_name'] = user.name
                 flash('Logged in successfully!')
+                if user.role == 'admin':
+                    return redirect(url_for('admin_dashboard'))
+                if user.role == 'counselor':
+                    return redirect(url_for('counselor_dashboard'))
+                if user.role == 'student':
+                    if user.completed_get_to_know_you:
+                        return redirect(url_for('assessments'))
+                    return redirect(url_for('get_to_know_you'))
                 return redirect(url_for('index'))
             else:
                 flash('Invalid email or password.')
@@ -483,7 +540,7 @@ def logout():
 def index():
     if session.get('user_id'):
         user = db.session.get(User, session['user_id'])
-        if user and not user.completed_get_to_know_you:
+        if user and user.role == 'student' and not user.completed_get_to_know_you:
             return redirect(url_for('get_to_know_you'))
     return render_template('index.html')
 
@@ -497,13 +554,18 @@ def landing():
             flash('Session expired. Please log in again.')
             return redirect(url_for('login'))
 
+        if user.role == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        if user.role == 'counselor':
+            return redirect(url_for('counselor_dashboard'))
+
         if request.method == 'POST':
             # POST not allowed here, redirect to GET
             return redirect(url_for('landing'))
 
-        if not user.completed_get_to_know_you:
+        if user.role == 'student' and not user.completed_get_to_know_you:
             return render_template('get_to_know_you.html', user=user)
-        return render_template('tests_landing.html', user=user)
+        return redirect(url_for('assessments'))
     except Exception as e:
         print(f"Landing page error: {e}")
         session.clear()
@@ -520,8 +582,15 @@ def get_to_know_you():
             flash('Session expired. Please log in again.')
             return redirect(url_for('login'))
 
-        if user.completed_get_to_know_you:
+        if user.role != 'student':
+            if user.role == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            if user.role == 'counselor':
+                return redirect(url_for('counselor_dashboard'))
             return redirect(url_for('index'))
+
+        if user.completed_get_to_know_you:
+            return redirect(url_for('assessments'))
 
         if request.method == 'POST':
             # Process answers here (save responses and mark as completed)
@@ -531,13 +600,50 @@ def get_to_know_you():
             user.g2k_age_group = request.form.get('age_group', '').strip()
             db.session.commit()
             flash('Assessment completed! You can now access the tests.')
-            return redirect(url_for('index'))
+            return redirect(url_for('assessments'))
 
         return render_template('get_to_know_you.html', user=user)
     except Exception as e:
         db.session.rollback()
         print(f"Get to know you error: {e}")
         flash('An error occurred. Please try again.')
+        return redirect(url_for('landing'))
+
+
+@app.route('/assessments')
+@login_required
+def assessments():
+    try:
+        user = db.session.get(User, session['user_id'])
+        if not user:
+            session.clear()
+            flash('Session expired. Please log in again.')
+            return redirect(url_for('login'))
+
+        if user.role == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        if user.role == 'counselor':
+            return redirect(url_for('counselor_dashboard'))
+
+        if not user.completed_get_to_know_you:
+            flash('Please complete the "Get to Know You" assessment first.')
+            return redirect(url_for('get_to_know_you'))
+
+        completed_tests = _get_completed_base_tests(user)
+        completed_count = len(completed_tests)
+        _, total_tests, progress_pct = _get_progress(user)
+
+        return render_template(
+            'assessments.html',
+            user=user,
+            completed_tests=completed_tests,
+            completed_count=completed_count,
+            total_tests=total_tests,
+            progress_pct=progress_pct
+        )
+    except Exception as e:
+        print(f"Assessments page error: {e}")
+        flash('Unable to load assessments. Please try again.')
         return redirect(url_for('landing'))
 # Difficulty-aware question sourcing
 from comprehension_questions import get_questions_for_difficulty
@@ -864,38 +970,26 @@ def forgot_password():
                 return redirect(url_for('forgot_password'))
 
             user = User.query.filter_by(email=email).first()
-            if user:
-                token = serializer.dumps(email, salt='password-reset-salt')
-                reset_url = url_for('reset_password', token=token, _external=True)
 
-                # Check if mail server is configured
-                if app.config.get('MAIL_USERNAME'):
-                    msg = Message(
-                        'Password Reset Request - LD Detector',
-                        recipients=[email]
-                    )
-                    msg.body = f'''Hello {user.name},
+            existing_pending = PasswordResetRequest.query.filter(
+                PasswordResetRequest.email == email,
+                PasswordResetRequest.status.in_(['pending', 'approved'])
+            ).first()
+            if existing_pending:
+                flash('A password reset request is already pending approval. Please wait for an administrator to respond.')
+                return redirect(url_for('forgot_password'))
 
-You have requested to reset your password for your LD Detector account.
+            token = serializer.dumps(email, salt='password-reset-salt')
+            reset_request = PasswordResetRequest(
+                user_id=user.id if user else None,
+                email=email,
+                token=token,
+                status='pending'
+            )
+            db.session.add(reset_request)
+            db.session.commit()
 
-Please click the following link to reset your password:
-{reset_url}
-
-This link will expire in 1 hour for security reasons.
-
-If you did not request this password reset, please ignore this email.
-
-Best regards,
-LD Detector Team
-'''
-                    mail.send(msg)
-                    flash('Password reset email sent. Please check your inbox (and spam folder).')
-                else:
-                    # For development/demo purposes, show the reset link
-                    flash(f'Development mode: Reset link - {reset_url}')
-            else:
-                # Don't reveal if email exists or not for security
-                flash('If an account with that email exists, a password reset link has been sent.')
+            flash('Your password reset request has been submitted for administrator approval. You will receive instructions once it is approved.')
 
             return redirect(url_for('login'))
         except Exception as e:
@@ -1013,25 +1107,210 @@ def reset_password(token):
     return render_template('reset_password.html')
 
 @app.route('/admin')
-@counselor_required
+@role_required('admin')
 def admin_dashboard():
     try:
-        user = db.session.get(User, session['user_id'])
-        # Filters: email, test_type
-        email = request.args.get('email', '').strip()
+        current_user = db.session.get(User, session['user_id'])
+
+        # Assessment filters
+        email_filter = request.args.get('email', '').strip()
         test_type = request.args.get('test_type', '').strip()
-        results = get_filtered_results(email=email or None, test_type=test_type or None)
-        return render_template('admin_dashboard.html', results=results, email=email, test_type=test_type, user=user)
+        results = get_filtered_results(email=email_filter or None, test_type=test_type or None)
+
+        # User list with pagination
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        if per_page <= 0 or per_page > 100:
+            per_page = 10
+        users_query = User.query.order_by(User.name.asc())
+        users_pagination = users_query.paginate(page=page, per_page=per_page, error_out=False)
+
+        # Password reset requests
+        reset_status = request.args.get('reset_status', 'pending').lower()
+        reset_query = PasswordResetRequest.query.order_by(PasswordResetRequest.requested_at.desc())
+        if reset_status and reset_status != 'all':
+            reset_query = reset_query.filter(PasswordResetRequest.status == reset_status)
+        reset_requests = reset_query.limit(200).all()
+
+        role_choices = ['admin', 'counselor', 'student']
+
+        return render_template(
+            'admin_dashboard.html',
+            user=current_user,
+            results=results,
+            email=email_filter,
+            test_type=test_type,
+            users_pagination=users_pagination,
+            role_choices=role_choices,
+            reset_requests=reset_requests,
+            reset_status=reset_status,
+            per_page=per_page
+        )
     except Exception as e:
         print(f"Admin dashboard error: {e}")
         flash('An error occurred loading the admin dashboard.')
         return redirect(url_for('landing'))
 
-@app.route('/assessments')
-@login_required
-def assessments():
+
+@app.route('/admin/users/<int:user_id>/role', methods=['POST'])
+@role_required('admin')
+def admin_update_user_role(user_id):
     try:
-        user = db.session.get(User, session['user_id'])
+        new_role = request.form.get('role', '').strip().lower()
+        allowed_roles = {'admin', 'counselor', 'student'}
+        if new_role not in allowed_roles:
+            flash('Invalid role selection.')
+            return redirect(url_for('admin_dashboard'))
+
+        user = db.session.get(User, user_id)
+        if not user:
+            flash('User not found.')
+            return redirect(url_for('admin_dashboard'))
+
+        current_admin_id = session.get('user_id')
+        if user.id == current_admin_id and new_role != 'admin':
+            flash('You cannot remove your own admin privileges.')
+            return redirect(url_for('admin_dashboard'))
+
+        user.role = new_role
+        db.session.commit()
+        flash(f"Updated {user.name}'s role to {new_role.title()}.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Admin update role error: {e}")
+        flash('Unable to update user role.')
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/users/<int:user_id>/toggle-active', methods=['POST'])
+@role_required('admin')
+def admin_toggle_user_active(user_id):
+    try:
+        user = db.session.get(User, user_id)
+        if not user:
+            flash('User not found.')
+            return redirect(url_for('admin_dashboard'))
+
+        if user.id == session.get('user_id'):
+            flash('You cannot change your own active status.')
+            return redirect(url_for('admin_dashboard'))
+
+        user.active = not bool(user.active)
+        db.session.commit()
+        flash(f"User {user.name} is now {'active' if user.active else 'inactive'}.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Admin toggle active error: {e}")
+        flash('Unable to update user status.')
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
+@role_required('admin')
+def admin_delete_user(user_id):
+    try:
+        user = db.session.get(User, user_id)
+        if not user:
+            flash('User not found.')
+            return redirect(url_for('admin_dashboard'))
+
+        if user.id == session.get('user_id'):
+            flash('You cannot delete your own account.')
+            return redirect(url_for('admin_dashboard'))
+
+        if user.role == 'counselor' and user.programs_created.count() > 0:
+            flash('Please reassign or remove programs created by this counselor before deleting the account.')
+            return redirect(url_for('admin_dashboard'))
+
+        # Clean up dependent records
+        CounselorStudent.query.filter(
+            (CounselorStudent.counselor_id == user.id) | (CounselorStudent.student_id == user.id)
+        ).delete(synchronize_session=False)
+        Review.query.filter_by(student_id=user.id).delete(synchronize_session=False)
+        User_Test_Attempt.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+        User_Remedial_Progress.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+        PasswordResetRequest.query.filter(
+            (PasswordResetRequest.user_id == user.id) | (PasswordResetRequest.email == user.email)
+        ).delete(synchronize_session=False)
+
+        db.session.delete(user)
+        db.session.commit()
+        flash('User account deleted successfully.')
+    except Exception as e:
+        db.session.rollback()
+        print(f"Admin delete user error: {e}")
+        flash('Unable to delete user account.')
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/reset-requests/<int:request_id>/approve', methods=['POST'])
+@role_required('admin')
+def admin_approve_reset_request(request_id):
+    try:
+        reset_request = db.session.get(PasswordResetRequest, request_id)
+        if not reset_request:
+            flash('Reset request not found.')
+            return redirect(url_for('admin_dashboard'))
+
+        if reset_request.status not in ['pending', 'approved']:
+            flash('This reset request is not pending approval.')
+            return redirect(url_for('admin_dashboard'))
+
+        reset_request.status = 'approved'
+        reset_request.processed_at = datetime.utcnow()
+        db.session.commit()
+
+        reset_url = url_for('reset_password', token=reset_request.token, _external=True)
+        recipient = reset_request.email
+
+        if app.config.get('MAIL_USERNAME'):
+            msg = Message(
+                'Password Reset Approved - LD Detector',
+                recipients=[recipient]
+            )
+            msg.body = f'''Hello,
+
+Your password reset request has been approved by an administrator.
+
+Please use the following link to reset your password:
+{reset_url}
+
+This link will expire in 1 hour for security reasons.
+
+If you did not request this reset, please contact support immediately.
+
+Best regards,
+LD Detector Team
+'''
+            mail.send(msg)
+            flash('Password reset approved and email sent to the user.')
+        else:
+            flash(f'Password reset approved. Development mode link: {reset_url}')
+    except Exception as e:
+        db.session.rollback()
+        print(f"Admin approve reset error: {e}")
+        flash('Unable to approve password reset request.')
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/reset-requests/<int:request_id>/deny', methods=['POST'])
+@role_required('admin')
+def admin_deny_reset_request(request_id):
+    try:
+        reset_request = db.session.get(PasswordResetRequest, request_id)
+        if not reset_request:
+            flash('Reset request not found.')
+            return redirect(url_for('admin_dashboard'))
+
+        if reset_request.status not in ['pending', 'approved']:
+            flash('This reset request cannot be denied.')
+            return redirect(url_for('admin_dashboard'))
+
+        reset_request.status = 'denied'
+        reset_request.processed_at = datetime.utcnow()
+        db.session.commit()
+        flash('Password reset request denied.')
+    except Exception as e:
         completed_set, total_tests, progress_pct = _get_progress(user)
         completed_count = len(completed_set)
         return render_template(
@@ -1238,153 +1517,88 @@ def programs():
         print(f"Programs page error: {e}")
         flash('An error occurred loading your programs.')
         return redirect(url_for('assessments'))
-@app.route('/counselor')
-@counselor_required
+
+
+@app.route('/counselor/dashboard', methods=['GET', 'POST'])
+@role_required('counselor')
 def counselor_dashboard():
     try:
-        user = db.session.get(User, session['user_id'])
+        counselor = db.session.get(User, session['user_id'])
 
-        # Get all students
-        search_query = request.args.get('search', '').strip().lower()
-        if search_query:
-            students = User.query.filter(
-                User.role == 'student',
-                (User.name.ilike(f'%{search_query}%')) | (User.email.ilike(f'%{search_query}%'))
-            ).all()
-        else:
-            students = User.query.filter_by(role='student').all()
+        if request.method == 'POST':
+            title = request.form.get('title', '').strip()
+            description = request.form.get('description', '').strip() or None
+            if not title:
+                flash('Program title is required.')
+            else:
+                program = Program(title=title, description=description, created_by=counselor.id)
+                db.session.add(program)
+                db.session.commit()
+                flash('New program created successfully.')
+            return redirect(url_for('counselor_dashboard'))
 
-        # Get all programs (remedials) and assessments (tests)
-        programs = Remedial.query.all()
-        assessments = Test.query.all()
+        assigned_student_ids = [cs.student_id for cs in counselor.counselor_assignments.all()]
+        students_query = User.query.filter(User.role == 'student')
+        if assigned_student_ids:
+            students_query = students_query.filter(User.id.in_(assigned_student_ids))
+        students = students_query.order_by(User.name.asc()).all()
 
-        return render_template('counselor_dashboard.html', students=students, programs=programs, assessments=assessments, user=user, search_query=search_query)
+        programs = counselor.programs_created.order_by(Program.created_at.desc()).all()
+        program_ids = [p.id for p in programs]
+
+        reviews = []
+        if program_ids:
+            reviews = (Review.query
+                       .filter(Review.program_id.in_(program_ids))
+                       .order_by(Review.created_at.desc())
+                       .limit(50)
+                       .all())
+
+        trend_rows = (
+            db.session.query(
+                Result.test_type,
+                func.count(Result.id).label('total'),
+                func.avg(Result.score).label('avg_score'),
+                func.sum(func.case([(Result.flag == True, 1)], else_=0)).label('flagged_count')
+            )
+            .group_by(Result.test_type)
+            .order_by(Result.test_type)
+            .all()
+        )
+
+        return render_template(
+            'counselor_dashboard.html',
+            user=counselor,
+            students=students,
+            programs=programs,
+            reviews=reviews,
+            trend_rows=trend_rows
+        )
     except Exception as e:
         print(f"Counselor dashboard error: {e}")
         flash('An error occurred loading the counselor dashboard.')
         return redirect(url_for('landing'))
 
 @app.route('/counselor/results/<int:student_id>')
-@counselor_required
-def view_student_results(student_id):
+@role_required('counselor')
+def counselor_student_results(student_id):
     try:
-        from models import get_student_results
-        results = get_student_results(student_id)
-        student = User.query.get_or_404(student_id)
-        return render_template('counselor_results.html', results=results, student=student)
-    except Exception as e:
-        print(f"View student results error: {e}")
-        flash('An error occurred loading student results.')
-        return redirect(url_for('counselor_dashboard'))
-
-@app.route('/counselor/generate_graph')
-@counselor_required
-def generate_graph():
-    try:
-        from models import get_results_aggregates
-        aggregates = get_results_aggregates()
-        return {'aggregates': aggregates}
-    except Exception as e:
-        print(f"Generate graph error: {e}")
-        return {'error': 'An error occurred generating graph data.'}, 500
-
-@app.route('/counselor/add_program', methods=['POST'])
-@counselor_required
-def add_program():
-    try:
-        name = request.form.get('name', '').strip()
-        description = request.form.get('description', '').strip()
-        test_id = request.form.get('test_id', '').strip()
-
-        if not all([name, description, test_id]):
-            flash('All fields are required.')
+        student = db.session.get(User, student_id)
+        if not student or student.role != 'student':
+            flash('Student not found.')
             return redirect(url_for('counselor_dashboard'))
 
-        # Validate test_id exists
-        test = Test.query.get(int(test_id))
-        if not test:
-            flash('Invalid test selected.')
-            return redirect(url_for('counselor_dashboard'))
-
-        remedial = Remedial(
-            test_id=int(test_id),
-            name=name,
-            description=description
-        )
-        db.session.add(remedial)
-        db.session.commit()
-        flash('Program added successfully!')
-        return redirect(url_for('counselor_dashboard'))
+        results = (Result.query
+                   .filter(Result.email == student.email)
+                   .order_by(Result.timestamp.desc())
+                   .limit(200)
+                   .all())
+        return render_template('counselor_results.html', student=student, results=results)
     except Exception as e:
-        db.session.rollback()
-        print(f"Add program error: {e}")
-        flash('An error occurred adding the program.')
+        print(f"Counselor student results error: {e}")
+        flash('Unable to load student results.')
         return redirect(url_for('counselor_dashboard'))
 
-@app.route('/counselor/delete_program/<int:program_id>', methods=['POST'])
-@counselor_required
-def delete_program(program_id):
-    try:
-        remedial = Remedial.query.get_or_404(program_id)
-        db.session.delete(remedial)
-        db.session.commit()
-        flash('Program deleted successfully!')
-        return redirect(url_for('counselor_dashboard'))
-    except Exception as e:
-        db.session.rollback()
-        print(f"Delete program error: {e}")
-        flash('An error occurred deleting the program.')
-        return redirect(url_for('counselor_dashboard'))
-
-@app.route('/counselor/add_assessment', methods=['POST'])
-@counselor_required
-def add_assessment():
-    try:
-        name = request.form.get('name', '').strip()
-        description = request.form.get('description', '').strip()
-        difficulty_level = request.form.get('difficulty_level', 'medium').strip()
-
-        if not all([name, description]):
-            flash('Name and description are required.')
-            return redirect(url_for('counselor_dashboard'))
-
-        if difficulty_level not in ['easy', 'medium', 'hard']:
-            difficulty_level = 'medium'
-
-        test = Test(
-            name=name,
-            description=description,
-            difficulty_level=difficulty_level
-        )
-        db.session.add(test)
-        db.session.commit()
-        flash('Assessment added successfully!')
-        return redirect(url_for('counselor_dashboard'))
-    except Exception as e:
-        db.session.rollback()
-        print(f"Add assessment error: {e}")
-        flash('An error occurred adding the assessment.')
-        return redirect(url_for('counselor_dashboard'))
-
-@app.route('/counselor/delete_assessment/<int:assessment_id>', methods=['POST'])
-@counselor_required
-def delete_assessment(assessment_id):
-    try:
-        test = Test.query.get_or_404(assessment_id)
-        # Check if there are related remedials
-        if Remedial.query.filter_by(test_id=assessment_id).first():
-            flash('Cannot delete assessment with associated programs. Delete programs first.')
-            return redirect(url_for('counselor_dashboard'))
-
-        db.session.delete(test)
-        db.session.commit()
-        flash('Assessment deleted successfully!')
-        return redirect(url_for('counselor_dashboard'))
-    except Exception as e:
-        db.session.rollback()
-        print(f"Delete assessment error: {e}")
-        flash('An error occurred deleting the assessment.')
-        return redirect(url_for('counselor_dashboard'))
 
 @app.route('/student/dashboard')
 @login_required

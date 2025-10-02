@@ -47,11 +47,10 @@
       <!-- Users Overview Tab -->
       <div id="users-content" class="tab-content">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <!-- Total Students Card -->
           <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-xl shadow-lg text-white">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-blue-100 text-sm font-medium">Total Students</p>
+                <p class="text-blue-100 text-sm font-medium">Assigned Students</p>
                 <p class="text-3xl font-bold">{{ students|length }}</p>
               </div>
               <div class="w-12 h-12 bg-blue-400/30 rounded-xl flex items-center justify-center">
@@ -59,25 +58,10 @@
               </div>
             </div>
           </div>
-
-          <!-- Active Assessments Card -->
-          <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl shadow-lg text-white">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-green-100 text-sm font-medium">Active Assessments</p>
-                <p class="text-3xl font-bold">{{ assessments|length }}</p>
-              </div>
-              <div class="w-12 h-12 bg-green-400/30 rounded-xl flex items-center justify-center">
-                <span class="text-2xl">📝</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Programs Card -->
           <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl shadow-lg text-white">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-purple-100 text-sm font-medium">Remedial Programs</p>
+                <p class="text-purple-100 text-sm font-medium">Programs Authored</p>
                 <p class="text-3xl font-bold">{{ programs|length }}</p>
               </div>
               <div class="w-12 h-12 bg-purple-400/30 rounded-xl flex items-center justify-center">
@@ -85,63 +69,118 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Students Table -->
-        <div class="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden">
-          <div class="p-6 border-b border-gray-200 dark:border-gray-600">
-            <div class="flex justify-between items-center">
-              <h2 class="text-xl font-semibold">Student Directory</h2>
-              <div class="flex gap-4">
-                <input
-                  type="text"
-                  id="student-search"
-                  placeholder="Search students..."
-                  class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20"
-                >
-                <button onclick="searchStudents()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300">🔍 Search</button>
+          <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 rounded-xl shadow-lg text-white">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-emerald-100 text-sm font-medium">Reviews Logged</p>
+                <p class="text-3xl font-bold">{{ reviews|length }}</p>
+              </div>
+              <div class="w-12 h-12 bg-emerald-400/30 rounded-xl flex items-center justify-center">
+                <span class="text-2xl">📝</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="overflow-x-auto">
-            <table class="min-w-full">
-              <thead class="bg-gray-50 dark:bg-gray-600">
-                <tr>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Name</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Email</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Age</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Course</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Learning Style</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 dark:divide-gray-600" id="students-table-body">
-                {% for student in students %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-colors duration-200">
-                  <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ student.name }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.email }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.age or 'N/A' }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.course or 'N/A' }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.g2k_learning_style or 'N/A' }}</td>
-                  <td class="px-6 py-4 text-sm space-x-2">
-                    <button onclick="viewStudentResults({{ student.id }})" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300">View Results</button>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-
-          {% if not students %}
-          <div class="p-12 text-center">
-            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span class="text-2xl text-gray-400">👥</span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-semibold">Assigned Students</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Students linked to you via counselor assignments.</p>
+              </div>
+              <input
+                type="text"
+                id="student-search"
+                placeholder="Filter by name or email..."
+                onkeyup="searchStudents()"
+                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+              >
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Students Found</h3>
-            <p class="text-gray-600 dark:text-gray-300">Students will appear here once they register and complete assessments.</p>
+
+            <div class="overflow-x-auto">
+              <table class="min-w-full">
+                <thead class="bg-gray-50 dark:bg-gray-600">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Student</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Email</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Course</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Learning Style</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-600" id="students-table-body">
+                  {% for student in students %}
+                  <tr class="hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-colors duration-200">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                      <div>{{ student.name }}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">ID: {{ student.id }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.email }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.course or 'N/A' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.g2k_learning_style or 'N/A' }}</td>
+                    <td class="px-6 py-4 text-sm space-x-2">
+                      <a href="{{ url_for('counselor_student_results', student_id=student.id) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300">View Results</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            {% if not students %}
+            <div class="p-12 text-center">
+              <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span class="text-2xl text-gray-400">👥</span>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Students Assigned</h3>
+              <p class="text-gray-600 dark:text-gray-300">Once students are assigned to you, they will appear here with quick access to their results.</p>
+            </div>
+            {% endif %}
           </div>
-          {% endif %}
+
+          <div class="bg-white dark:bg-gray-700 rounded-xl shadow-lg p-6 space-y-6">
+            <div>
+              <h2 class="text-xl font-semibold mb-3">Create Program</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Design support programs tailored to your students.</p>
+              <form method="POST" action="{{ url_for('counselor_dashboard') }}" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+                  <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                  <textarea name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20"></textarea>
+                </div>
+                <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-300">Create Program</button>
+              </form>
+            </div>
+
+            <div>
+              <h2 class="text-xl font-semibold mb-3">Recent Reviews</h2>
+              <div class="space-y-3 max-h-72 overflow-y-auto">
+                {% for review in reviews %}
+                <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="font-semibold text-gray-900 dark:text-white">Program ID: {{ review.program_id }}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">Student ID: {{ review.student_id }}</p>
+                    </div>
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-200 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200 font-semibold">{{ review.rating }}</span>
+                  </div>
+                  <p class="text-sm text-gray-700 dark:text-gray-300 mt-3">{{ review.feedback or 'No written feedback.' }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">{{ review.created_at.strftime('%Y-%m-%d') if review.created_at else '' }}</p>
+                </div>
+                {% endfor %}
+
+                {% if not reviews %}
+                <div class="p-6 text-center text-sm text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
+                  No student reviews yet.
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
